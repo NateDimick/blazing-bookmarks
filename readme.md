@@ -4,6 +4,8 @@ I had this idea but a [reddit user](https://www.reddit.com/r/chrome/comments/2cg
 
 As you use your web browser and visit your favorite sites (that you've definitely put in you bookmarks bar, right?) this extension will automatically sort your bookmarks in order of how frequently you visit your bookmarks.
 
+This extension will *not* extract bookmarks from folders in the bookmarks bar. It will also not sort the Other bookmarks or Mobile bookmarks folders (though adding those options could be a good future update).
+
 ## Resources
 
 Just a few documentation links that have been referenced to build this extension.
@@ -17,11 +19,17 @@ Just a few documentation links that have been referenced to build this extension
 * initial build will be incredibly simple
   * visits are counted by 1
   * local storage only
+  * **versions after 0.0.1 fit initial build spec**
 * future builds will improve
-  * utilize chrome sync
+  * utilize chrome sync for consistancy across multiple devices
   * more robust visit counter
+  * convert http urls to https {**0.0.2 - DONE**}
+  * update bookmarks to have https {**0.0.2 - DONE**}
+  * ensure compatiblity on other chromium-based browsers, like Edge {**0.0.1 - DONE**}
   * add icon
   * add to chrome extension store?
+
+...And of course, this is open source so any issues or new feature proposals will be strongly considered.
 
 ## Demo Build Instructions
 
@@ -35,6 +43,34 @@ Very easy for anyone who has experience with developing chrome extensions, for e
 
 ## Version History
 
-| Date | Version | Comment |
-| --- | --- | --- |
-| 11/10/20 | 0.0.1 | Day 1 Build |
+| Date | Version | Headline | Comment |
+| --- | --- | --- | --- |
+| 11/10/20 | 0.0.1 | Day 1 Build | Initial working build |
+| 11/11/20 | 0.0.2 | Day 2 Build | Simplify data structures, convert bookmarks to https |
+
+## How it Works
+
+Under the hood there are two main data structures that allow this extension to work
+
+* `storage` is a object that maps bookmark ids to visit tallies. `storage` is maintained in local borwser storage to persist between browser sessions.
+* `bookmarkIds` is an array that mirrors the order of bookmarks on the bookmarks bar, but the array only stores ids. `bookmarkIds` is re-built every time the browser is opened.
+
+When the user visits a new webpage, this extension checks the url. if it matches the url of a bookmark, then it will do three things:
+
+1. increment the visit count in `storage`
+2. Percolate the bookmark's id in `bookmarkIds` to determine its new position on the bar
+3. Instruct Chrome's bookmarks API to make the move to match `bookmarkIds`
+
+## For the Sake of Arguement
+
+This extension is **good** because:
+
+* puts your most used bookmarks at the top of you bookmark list
+* automatic - no thought involved
+* over time will level out and not change so often
+
+This extension is **bad** because:
+
+* it kills muscle memory
+* ruins aesthetic of icons placed next to each other
+* poor algorithmic performance
