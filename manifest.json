@@ -1,6 +1,6 @@
 {
     "name": "Most Used Bookmarks Bar", 
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Automatically sorts bookmarks bar by most used",
     "manifest_version": 2,
     "background": {"scripts":["background.js"]},

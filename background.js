@@ -1,17 +1,6 @@
-/* 
-// Simple bookmarks API examples
-// get a single known bookmark by ID (in this case, this is my google bookmark)
-chrome.bookmarks.get("377", results => {
-    console.log(results);
-})
-// Move a single bookmark - int this case, move the google bookmark from it's current position to index 1 of it's current parent
-chrome.bookmarks.move("377", {'index': 1}, result =>{
-    console.log('moved google');
-    console.log(result);
-}); 
-*/
 var storage = {};
 var bookmarkIds = [];
+var lastUrl = "";
 function getLocalStorage() {
     return new Promise((resolve, reject) => {
         try {
@@ -41,10 +30,12 @@ function getBookmarksBar () {
     })
 }
 async function getBookmarkIds() {
+    // create an array of ids where the order matches the bookmarks bar
     let bar = await getBookmarksBar();
     return bar.map(bm => {return bm.id})
 }
 function bookmarkIndex(id) {
+    // get the index of a bookmark in the bookmark bar given its id
     return new Promise((resolve, reject) => {
         try {
             chrome.bookmarks.get(id, results => {
@@ -57,6 +48,7 @@ function bookmarkIndex(id) {
     })
 }
 function bubbleUp(ind) {
+    // Percolate a bookark ID up through bookmarkIds until it is in the proper position for its popularity in storage
     if (ind === 0) {
         return 0;
     } else if (ind < 0) {
@@ -71,7 +63,6 @@ function bubbleUp(ind) {
         return ind;
     }
 }
-
 function isBookmark(url) {
     // brute force for now - could be much better
     return new Promise(async (resolve, reject) => {
@@ -85,7 +76,6 @@ function isBookmark(url) {
         });
         console.log(bookmarked);
         console.log(Math.max(...bookmarked));
-        //const test = bookmarked.some((bool) => bool === true);
         resolve(Math.max(...bookmarked));
     })
 }
@@ -108,54 +98,108 @@ function secureBookmarkUrl(bookmark) {
     }
 }
 
-/* chrome.bookmarks.getTree(treeNodeArray => {
-    console.log("bookmarks:");
-    console.log(treeNodeArray);
-}) */
-
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
-    if (changeInfo.status == 'complete' && tab.active) {
+    if (changeInfo.status == 'complete' && tab.active && tab.url != lastUrl) {
         console.log(`New page in tab ${tabId} going to ${tab.url}`);
-        let isInBar = await isBookmark(tab.url);
-        console.log(isInBar);
-        if (isInBar) {
-            let bmid = isInBar.toString();
+        lastUrl = tab.url;
+        let bookmarkId = await isBookmark(tab.url);  // will be 0 if not a bookmark
+        if (bookmarkId) {
+            let bmid = bookmarkId.toString();
             console.log(`this page ${bmid} is in the bookmarks bar`);
-            let bmi = await bookmarkIndex(bmid);
+            let bmInd = await bookmarkIndex(bmid);
             if (storage[bmid] !== undefined) {
                 storage[bmid] += 1;
             } else {
                 storage[bmid] = 1;
             }
-            let newIndex = bubbleUp(bmi);
-            console.log(`moving ${isInBar} from ${bmi} to ${newIndex}`);
+            let newIndex = bubbleUp(bmInd);
+            console.log(`moving ${bookmarkId} from ${bmInd} to ${newIndex}`);
             if (newIndex >= 0) {
-                chrome.bookmarks.move(bmid, {'index': newIndex}, details => {  // isInBar needs to be toString'd
-                    console.log('ok...');
+                chrome.bookmarks.move(bmid, {'index': newIndex}, details => {
                     chrome.storage.local.set({storage: storage}, () => {
-                        console.log('...ok');
                         console.log(storage);
                     })
                 })
             }
         }
-        
-        
-        // console.log(changeInfo);
-        // console.log(tab);
-        // console.log(window.location.href);
-        // chrome.tabs.get(tabId, yourTab => {
-        //     console.log(`Your tab @ ${yourTab.url || yourTab.pendingUrl}`);
-        // })
     }
 });
 
 chrome.bookmarks.onCreated.addListener((id, bookmark) => {
-    storage[id] = 1;
-    secureBookmarkUrl(bookmark);
-    chrome.storage.local.set({storage: storage}, () => {
-        console.log('ok');
-    })
+    // when a new bookmark is created, we'll add it to storage with a visit count of 1 (assuming that it was created via the bookmark star in the url bar, maning the user is currently on the site) but will not bubble it up
+    if (bookmark.parentId === "1") {
+        storage[id] = 1;
+        secureBookmarkUrl(bookmark);
+        chrome.storage.local.set({storage: storage}, () => {
+            console.log('ok');
+        })
+    }
+})
+
+chrome.bookmarks.onChanged.addListener((id, changeInfo) => {
+    // when user changes title or url of a bookmark
+    if (changeInfo.url) {
+        chrome.bookmarks.get(id, results => {
+            secureBookmarkUrl(results[0]);
+        })
+    }
+})
+
+chrome.bookmarks.onRemoved.addListener((id, removeInfo) => {
+    if (removeInfo.parentId === "1") {
+        bookmarkIds.splice(removeInfo.index, 1); // remove removeinfo.index from bookmarkIds
+        delete storage[id]; // remove storage[id]
+        console.log(`bookmark ${id} was deleted`);
+        chrome.storage.local.set({storage: storage}, () => {
+            console.log('ok');
+        })// save changes to storage
+    }
+})
+
+chrome.bookmarks.onMoved.addListener(async (id, moveInfo) => {
+    // when a bookmark is moved between folders
+    // also triggers on chrome.bookmarks.move. 
+    if (moveInfo.parentId !== moveInfo.oldParentId) {
+        if (moveInfo.parentId === "1") {  // moved to the bookmarks bar
+            bookmarkIds.splice(moveInfo.index, 0, id);
+            console.log(`bookmark ${id} was moved to bookmarks`);
+        } else if (moveInfo.oldParentId === "1") {  // moved from the bookmarks bar
+            bookmarkIds.splice(moveInfo.oldIndex, 1);
+            delete storage[id];
+            console.log(`bookmark ${id} was moved from bookmarks`);
+            chrome.storage.local.set({storage: storage}, () => {
+                console.log('ok');
+            })
+        }
+    } else {
+        if (storage[id] != undefined) {
+            console.log(`${id} was moved to ${moveInfo.index} from ${moveInfo.oldIndex}`);
+            let currentBookmarkIds = await getBookmarkIds();
+            if (currentBookmarkIds.join('') === bookmarkIds.join('')) {
+                console.log('this was a script-made move');
+                // ignore, everything is okay
+            } else {
+                console.log('this was a user UI move');
+                // gotta fix it
+                let newIndex = moveInfo.oldIndex;
+                if (newIndex > moveInfo.index) {
+                    newIndex += 1;
+                }
+                chrome.bookmarks.move(id, {'index': newIndex});
+            }
+        } else {
+            console.log('untracked bookmark moved');
+            bookmarkIds = await getBookmarkIds();  // update bookmarkIds or else there's a terrible glitch
+        }
+    }
+})
+
+chrome.bookmarks.onChildrenReordered.addListener((id, reorderInfo) => {
+    // triggered by user in the UI, not by chrome.bookmarks.move
+    // this doesn't work. it will not trigger when draggin bookmarks in the chrome UI.
+    console.log("CHILDREN REORDER");
+    console.log(id);
+    console.log(reorderInfo.childIds);
 })
 
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -165,14 +209,11 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         storage = {};
         let bookmarksBar = await getBookmarksBar();
         bookmarksBar.forEach(bm => {secureBookmarkUrl(bm)})
-        /* bookmarksBar.forEach(bm => {
-            storage[id] = 0;
-        }) */
         chrome.storage.local.set({storage: storage}, () => {
             console.log('ok');
         })
     }
-    // no need to check for other reasons
+    // no need to check for other reasons... yet
 })
 
 // when opening the browser, run this code to set up storage and bookmarkIds in memory
