@@ -1,5 +1,7 @@
 var storage = {};
 var bookmarkIds = [];
+var folderBookmarks = {};
+var barFolders = Set();
 var lastUrl = "";
 function getLocalStorage() {
     return new Promise((resolve, reject) => {
@@ -33,6 +35,32 @@ async function getBookmarkIds() {
     // create an array of ids where the order matches the bookmarks bar
     let bar = await getBookmarksBar();
     return bar.map(bm => {return bm.id})
+}
+async function getFolderContents() {
+    // generates a map of bookmark ids to the top-level 
+    // stored in the global folderBookmarks object
+    let bookmarks = await getBookmarksBar();
+    for (let bm of bookmarks) {
+        if (bm.url === undefined) {
+            barFolders.add(bm.id);
+            chrome.bookmarks.getChildren(bm.id, children => {
+                innerFolderContents(bm.id, children);
+            })
+        }
+    }
+}
+async function innerFolderContents(topFolderId, folderContents) {
+    for (let bm of folderContents) {
+        if (bm.url === undefined) {
+            // recurse
+            barFolders.add(bm.id);
+            chrome.bookmarks.getChildren(bm.id, children => {
+                innerFolderContents(topFolderId, children);
+            })
+        } else {
+            folderBookmarks[bm.url] = topFolderId;
+        }
+    }
 }
 function bookmarkIndex(id) {
     // get the index of a bookmark in the bookmark bar given its id
@@ -69,6 +97,9 @@ function isBookmark(url) {
         let bookmarksBar = await getBookmarksBar();
         let bookmarked = bookmarksBar.map(bm => {
             if (bm.url === url){
+                return parseInt(bm.id);
+            } else if (folderBookmarks[url] === bm.id) {
+                console.log('URL BELONGS TO A FOLDER NESTED BOOKMARK')
                 return parseInt(bm.id);
             } else {
                 return 0;
@@ -125,14 +156,18 @@ chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
     }
 });
 
-chrome.bookmarks.onCreated.addListener((id, bookmark) => {
+chrome.bookmarks.onCreated.addListener(async (id, bookmark) => {
     // when a new bookmark is created, we'll add it to storage with a visit count of 1 (assuming that it was created via the bookmark star in the url bar, maning the user is currently on the site) but will not bubble it up
     if (bookmark.parentId === "1") {
         storage[id] = 1;
         secureBookmarkUrl(bookmark);
+        bookmarkIds = await getBookmarkIds();
         chrome.storage.local.set({storage: storage}, () => {
             console.log('ok');
         })
+    } else if (bookmark.url === undefined && barFolders.has(bm.parentId)) {
+        // this is a new folder nested in a folder in the bookmarks bar (that might also be nested)
+        barFolders.add(bookmark.id);
     }
 })
 
@@ -153,6 +188,8 @@ chrome.bookmarks.onRemoved.addListener((id, removeInfo) => {
         chrome.storage.local.set({storage: storage}, () => {
             console.log('ok');
         })// save changes to storage
+    } else if (folderBookmarks[removeInfo.node.url] !== undefined) {
+        delete folderBookmarks[removeInfo.node.url];
     }
 })
 
@@ -170,9 +207,16 @@ chrome.bookmarks.onMoved.addListener(async (id, moveInfo) => {
             chrome.storage.local.set({storage: storage}, () => {
                 console.log('ok');
             })
+        } else if (barFolders.has(moveInfo.parentId)) {
+            // the bookmark has been moved into the bookmarks bar but is nested
+            // TODO: map url to the top level folder in folderBookmarks
+        } else if (barFolders.has(moveInfo.oldParentId)) {
+            // the bookmark has been removed from a bookmark bar nested folder
+            // it's url mapping must be removed
+            // not mutually exclusive from condition above
         }
     } else {
-        if (storage[id] != undefined) {
+        if (storage[id] !== undefined) {
             console.log(`${id} was moved to ${moveInfo.index} from ${moveInfo.oldIndex}`);
             let currentBookmarkIds = await getBookmarkIds();
             if (currentBookmarkIds.join('') === bookmarkIds.join('')) {
@@ -187,10 +231,17 @@ chrome.bookmarks.onMoved.addListener(async (id, moveInfo) => {
                 }
                 chrome.bookmarks.move(id, {'index': newIndex});
             }
+        } else if (storage[id] === undefined && moveInfo.index < Object.keys(storage).length) {
+            // an untracked bookmark has been inserted between tracked bookmarks
+            chrome.bookmarks.move(id, {'index': Object.keys(storage).length + 1}, async details => {
+                console.log(`untracked bookmark tried to infiltrate tracked section, kicked to index ${Object.keys(storage).length + 1}`)
+                bookmarkIds = await getBookmarkIds();
+            })
         } else {
+            // untracked bookmarks moved among other untracked bookmarks
             console.log('untracked bookmark moved');
             bookmarkIds = await getBookmarkIds();  // update bookmarkIds or else there's a terrible glitch
-        }
+        } 
     }
 })
 
@@ -219,3 +270,4 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 // when opening the browser, run this code to set up storage and bookmarkIds in memory
 getLocalStorage();
 getBookmarkIds().then(idMap => {bookmarkIds = idMap});
+getFolderContents();
