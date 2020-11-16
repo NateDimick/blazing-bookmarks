@@ -22,7 +22,6 @@ Just a few documentation links that have been referenced to build this extension
   * **versions after 0.0.1 fit initial build spec**
 * future builds will improve
   * utilize chrome sync for consistancy across multiple devices
-  * robust listeners for all user actions
   * limit tracking to top 100 bookmarks/folders only
   * options
     * on/off
@@ -51,6 +50,7 @@ Very easy for anyone who has experience with developing chrome extensions, for e
 | 11/11/20 | 0.0.2 | Day 2 Build | Simplify data structures, convert bookmarks to https |
 | 11/12/20 | 0.0.3 | Day 3 Build | Extra event handling for moving and removing bookmarks |
 | 11/13/20 | 0.0.4 | Day 4 Build | Some folder support, handling moving untracked bookmarks |
+| 11/16/20 | 0.0.5 | Day 5 Build | Complete folder support |
 
 ## How it Works
 

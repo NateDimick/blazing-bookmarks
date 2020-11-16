@@ -1,7 +1,7 @@
-var storage = {};
-var bookmarkIds = [];
-var folderBookmarks = {};
-var barFolders = Set();
+var storage = {};  // visit counts mapped by bookmark ID
+var bookmarkIds = [];   // sequential representation of bookamrks bar woth IDs only
+var folderBookmarks = {};  // bookmark bar folder id's mapped by urls of bookmarks contained within
+var barFolders = new Set();  // folders that exist in the bokmarks bar, ether at the top-level or nested
 var lastUrl = "";
 function getLocalStorage() {
     return new Promise((resolve, reject) => {
@@ -39,6 +39,8 @@ async function getBookmarkIds() {
 async function getFolderContents() {
     // generates a map of bookmark ids to the top-level 
     // stored in the global folderBookmarks object
+    barFolders.clear();
+    barFolders.add("1"); // insert bookmarks bar itself
     let bookmarks = await getBookmarksBar();
     for (let bm of bookmarks) {
         if (bm.url === undefined) {
@@ -165,10 +167,10 @@ chrome.bookmarks.onCreated.addListener(async (id, bookmark) => {
         chrome.storage.local.set({storage: storage}, () => {
             console.log('ok');
         })
-    } else if (bookmark.url === undefined && barFolders.has(bm.parentId)) {
-        // this is a new folder nested in a folder in the bookmarks bar (that might also be nested)
-        barFolders.add(bookmark.id);
-    }
+    } else if (bookmark.url === undefined && barFolders.has(bookmark.parentId)) {
+        console.log("New Folder in the bookmarks bar!")
+        getFolderContents();
+    }  
 })
 
 chrome.bookmarks.onChanged.addListener((id, changeInfo) => {
@@ -188,9 +190,15 @@ chrome.bookmarks.onRemoved.addListener((id, removeInfo) => {
         chrome.storage.local.set({storage: storage}, () => {
             console.log('ok');
         })// save changes to storage
-    } else if (folderBookmarks[removeInfo.node.url] !== undefined) {
-        delete folderBookmarks[removeInfo.node.url];
-    }
+        if (!removeInfo.node.url) {
+            console.log("Top-level folder deleted");
+            getFolderContents();
+        }
+    } else if (folderBookmarks[removeInfo.node.url] !== undefined || barFolders.has(id)) {
+        // a nested bookmark or folder was deleted
+        console.log("nested bookmark or folder deleted");
+        getFolderContents();
+    } 
 })
 
 chrome.bookmarks.onMoved.addListener(async (id, moveInfo) => {
@@ -207,13 +215,11 @@ chrome.bookmarks.onMoved.addListener(async (id, moveInfo) => {
             chrome.storage.local.set({storage: storage}, () => {
                 console.log('ok');
             })
-        } else if (barFolders.has(moveInfo.parentId)) {
-            // the bookmark has been moved into the bookmarks bar but is nested
-            // TODO: map url to the top level folder in folderBookmarks
-        } else if (barFolders.has(moveInfo.oldParentId)) {
-            // the bookmark has been removed from a bookmark bar nested folder
-            // it's url mapping must be removed
-            // not mutually exclusive from condition above
+        } 
+        if (barFolders.has(moveInfo.parentId) || barFolders.has(moveInfo.oldParentId)) {
+            // bookmark was moved to or from a bookmark bar nested folder, and the folder structures should be rebuilt
+            console.log("movement within bookmark bar folders");
+            getFolderContents();
         }
     } else {
         if (storage[id] !== undefined) {
