@@ -22,12 +22,8 @@ Just a few documentation links that have been referenced to build this extension
   * **versions after 0.0.1 fit initial build spec**
 * future builds will improve
   * utilize chrome sync for consistancy across multiple devices
-  * limit tracking to top 100 bookmarks/folders only
-  * options
-    * on/off
-    * reset
+  * limit tracking to top 100 bookmarks/folders only (maybe - on the fence about this one)
   * recommend new bookmarks for frequently visited unbookmarked sites via pop-up
-  * add icon and other art for promotion
   * add to chrome extension store?
 
 ...And of course, this is open source so any issues or new feature proposals will be strongly considered.
@@ -51,6 +47,7 @@ Very easy for anyone who has experience with developing chrome extensions, for e
 | 11/12/20 | 0.0.3 | Day 3 Build | Extra event handling for moving and removing bookmarks |
 | 11/13/20 | 0.0.4 | Day 4 Build | Some folder support, handling moving untracked bookmarks |
 | 11/16/20 | 0.0.5 | Day 5 Build | Complete folder support |
+| 11/17/20 | 0.0.6 | Day 6 Build | Add Icons and Popup |
 
 ## How it Works
 
