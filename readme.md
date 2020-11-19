@@ -1,4 +1,4 @@
-# Bookmark Bar Most Used Sorter
+# Hot Bookmarks Bar - Bookmark Bar Most Used Sorter
 
 I had this idea but a [reddit user](https://www.reddit.com/r/chrome/comments/2cgfti/how_do_i_sort_my_bookmarks_by_frequency_of/) aparently had it first, though no one has implemented it yet.
 
@@ -48,6 +48,7 @@ Very easy for anyone who has experience with developing chrome extensions, for e
 | 11/13/20 | 0.0.4 | Day 4 Build | Some folder support, handling moving untracked bookmarks |
 | 11/16/20 | 0.0.5 | Day 5 Build | Complete folder support |
 | 11/17/20 | 0.0.6 | Day 6 Build | Add Icons and Popup |
+| 11/18/20 | 0.0.7 | Day 7 Build | Add "options" page |
 
 ## How it Works
 

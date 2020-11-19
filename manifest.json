@@ -1,14 +1,18 @@
 {
-    "name": "Most Used Bookmarks Bar", 
-    "version": "0.0.6",
+    "name": "Hot Bookmarks Bar", 
+    "version": "0.0.7",
     "description": "Automatically sorts bookmarks bar by most used",
     "manifest_version": 2,
-    "background": {"scripts":["background.js"]},
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    },
     "permissions": [
         "bookmarks",
         "tabs",
         "storage"
   ],
+  "options_page": "html/options.html",
   "browser_action": {
     "default_icon": {
       "16": "icons/hb16.png",
@@ -16,7 +20,7 @@
       "48": "icons/hb48.png",
       "128": "icons/hb128.png"
     },
-    "default_popup": "popup.html"
+    "default_popup": "html/popup.html"
   },
   "icons": {
     "16": "icons/hb16.png",
