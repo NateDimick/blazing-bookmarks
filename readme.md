@@ -49,6 +49,7 @@ Very easy for anyone who has experience with developing chrome extensions, for e
 | 11/16/20 | 0.0.5 | Day 5 Build | Complete folder support |
 | 11/17/20 | 0.0.6 | Day 6 Build | Add Icons and Popup |
 | 11/18/20 | 0.0.7 | Day 7 Build | Add "options" page |
+| 11/19/20 | 0.08 | Day 8 Build | redo icon (submitted day 7 build to chrome web store) |
 
 ## How it Works
 

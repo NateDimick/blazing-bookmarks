@@ -1,6 +1,6 @@
 {
     "name": "Hot Bookmarks Bar", 
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "Automatically sorts bookmarks bar by most used",
     "manifest_version": 2,
     "background": {
@@ -15,17 +15,17 @@
   "options_page": "html/options.html",
   "browser_action": {
     "default_icon": {
-      "16": "icons/hb16.png",
-      "32": "icons/hb32.png",
-      "48": "icons/hb48.png",
-      "128": "icons/hb128.png"
+      "16": "icons/hbv216.png",
+      "32": "icons/hbv232.png",
+      "48": "icons/hbv248.png",
+      "128": "icons/hbv2128.png"
     },
     "default_popup": "html/popup.html"
   },
   "icons": {
-    "16": "icons/hb16.png",
-    "32": "icons/hb32.png",
-    "48": "icons/hb48.png",
-    "128": "icons/hb128.png"
+    "16": "icons/hbv216.png",
+    "32": "icons/hbv232.png",
+    "48": "icons/hbv248.png",
+    "128": "icons/hbv2128.png"
   }
 }
