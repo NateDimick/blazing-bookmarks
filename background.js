@@ -1,7 +1,7 @@
 var storage = {};  // visit counts mapped by bookmark ID
-var bookmarkIds = [];   // sequential representation of bookamrks bar woth IDs only
+var bookmarkIds = [];   // sequential representation of bookmarks bar with IDs only
 var folderBookmarks = {};  // bookmark bar folder id's mapped by urls of bookmarks contained within
-var barFolders = new Set();  // folders that exist in the bokmarks bar, ether at the top-level or nested
+var barFolders = new Set();  // folders that exist in the bookmarks bar, ether at the top-level or nested
 var lastUrl = "";
 function getLocalStorage() {
     return new Promise((resolve, reject) => {
@@ -22,7 +22,7 @@ function getBookmarksBar () {
         try {
             // uses the bold assumption that node with id 1 is the bookmarks bar for all users
             // however, documentation says that "Bookmarks bar" and "Other bookmarks" cannot be renamed or removed,
-            // and that the root bookmarks folder cannot be modified in any way (this is where theose two folders are) 
+            // and that the root bookmarks folder cannot be modified in any way (this is where these two folders are) 
             chrome.bookmarks.getChildren("1", children => {
                 resolve(children);
             })
@@ -257,20 +257,6 @@ chrome.bookmarks.onChildrenReordered.addListener((id, reorderInfo) => {
     console.log("CHILDREN REORDER");
     console.log(id);
     console.log(reorderInfo.childIds);
-})
-
-chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason === 'install') {
-        // set up initial bookmarks data structure
-        console.log('Installing')
-        storage = {};
-        let bookmarksBar = await getBookmarksBar();
-        bookmarksBar.forEach(bm => {secureBookmarkUrl(bm)})
-        chrome.storage.local.set({storage: storage}, () => {
-            console.log('ok');
-        })
-    }
-    // no need to check for other reasons... yet
 })
 
 // when opening the browser, run this code to set up storage and bookmarkIds in memory

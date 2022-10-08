@@ -1,6 +1,6 @@
-# Hot Bookmarks Bar - Bookmark Bar Most Used Sorter
+# Blazing Bookmarks Bar - Sorts your bookmarks bar by visit frequency
 
-I had this idea but a [reddit user](https://www.reddit.com/r/chrome/comments/2cgfti/how_do_i_sort_my_bookmarks_by_frequency_of/) aparently had it first, though no one has implemented it yet.
+I had this idea but a [reddit user](https://www.reddit.com/r/chrome/comments/2cgfti/how_do_i_sort_my_bookmarks_by_frequency_of/) apparently had it first, though no one has implemented it yet.
 
 As you use your web browser and visit your favorite sites (that you've definitely put in you bookmarks bar, right?) this extension will automatically sort your bookmarks in order of how frequently you visit your bookmarks.
 
@@ -24,7 +24,6 @@ Just a few documentation links that have been referenced to build this extension
   * utilize chrome sync for consistancy across multiple devices
   * limit tracking to top 100 bookmarks/folders only (maybe - on the fence about this one)
   * recommend new bookmarks for frequently visited unbookmarked sites via pop-up
-  * add to chrome extension store?
 
 ...And of course, this is open source so any issues or new feature proposals will be strongly considered.
 
@@ -49,7 +48,8 @@ Very easy for anyone who has experience with developing chrome extensions, for e
 | 11/16/20 | 0.0.5 | Day 5 Build | Complete folder support |
 | 11/17/20 | 0.0.6 | Day 6 Build | Add Icons and Popup |
 | 11/18/20 | 0.0.7 | Day 7 Build | Add "options" page |
-| 11/19/20 | 0.08 | Day 8 Build | redo icon (submitted day 7 build to chrome web store) |
+| 11/19/20 | 0.0.8 | Day 8 Build | redo icon (submitted day 7 build to chrome web store) |
+| 10/08/22 | 0.0.9 | Manifest v3 | changes |
 
 ## How it Works
 

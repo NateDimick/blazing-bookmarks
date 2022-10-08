@@ -1,11 +1,10 @@
 {
-    "name": "Hot Bookmarks Bar", 
-    "version": "0.0.8",
-    "description": "Automatically sorts bookmarks bar by most used",
-    "manifest_version": 2,
+    "name": "Blazing Bookmarks", 
+    "version": "0.0.9",
+    "description": "Speed up your browsing with your most used bookmarks always on deck",
+    "manifest_version": 3,
     "background": {
-      "scripts": ["background.js"],
-      "persistent": false
+      "service_worker": "background.js"
     },
     "permissions": [
         "bookmarks",
@@ -13,18 +12,14 @@
         "storage"
   ],
   "options_page": "html/options.html",
-  "browser_action": {
+  "action": {
     "default_icon": {
-      "16": "icons/hbv216.png",
-      "32": "icons/hbv232.png",
       "48": "icons/hbv248.png",
       "128": "icons/hbv2128.png"
     },
     "default_popup": "html/popup.html"
   },
   "icons": {
-    "16": "icons/hbv216.png",
-    "32": "icons/hbv232.png",
     "48": "icons/hbv248.png",
     "128": "icons/hbv2128.png"
   }
