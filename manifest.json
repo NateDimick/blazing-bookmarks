@@ -14,13 +14,13 @@
   "options_page": "html/options.html",
   "action": {
     "default_icon": {
-      "48": "icons/hbv248.png",
-      "128": "icons/hbv2128.png"
+      "48": "icons/bb48.png",
+      "128": "icons/bb128.png"
     },
     "default_popup": "html/popup.html"
   },
   "icons": {
-    "48": "icons/hbv248.png",
-    "128": "icons/hbv2128.png"
+    "48": "icons/bb48.png",
+    "128": "icons/bb128.png"
   }
 }
